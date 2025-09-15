@@ -51,7 +51,7 @@ export const ProcrastinationHeatmap = ({ buckets }: Props) => {
           {/* Day headers */}
           <div className="flex">
             <div className="w-12"></div>
-            <div className="flex-1 grid grid-cols-7 gap-px md:gap-0.5 lg:gap-1">
+            <div className="flex-1 grid grid-cols-7 gap-px md:gap-0.5 lg:gap-1 justify-items-center">
               {DAYS.map(day => (
                 <div
                   key={day}
@@ -70,7 +70,7 @@ export const ProcrastinationHeatmap = ({ buckets }: Props) => {
               <div className="w-12 text-[10px] text-muted-foreground text-right pr-1">
                 {hour % 4 === 0 ? formatHour(hour) : ''}
               </div>
-              <div className="flex-1 grid grid-cols-7 gap-px md:gap-0.5 lg:gap-1">
+              <div className="flex-1 grid grid-cols-7 gap-px md:gap-0.5 lg:gap-1 place-items-center">
                 {DAYS.map((day, dayIndex) => {
                   const dow = dayIndex + 1;
                   const bucket = getBucketData(hour, dow);
