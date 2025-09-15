@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import { ProcrastinationHeatmap } from './ProcrastinationHeatmap';
 import { FocusTimer } from './FocusTimer';
 import { TodayTimeline } from './TodayTimeline';
@@ -6,93 +6,51 @@ import { TopTriggers } from './TopTriggers';
 import { NextBestWindow } from './NextBestWindow';
 import { SettingsPanel } from './SettingsPanel';
 import { WeeklyStats } from './WeeklyStats';
-import { generateDemoData, generateTodayTimeline, generateWeeklyStats, defaultSettings } from '@/lib/demo-data';
-import type { Settings as AppSettings, FingerprintBucket, TimelineSegment, DayStats, NextBestWindow as NextBestWindowType } from '@/types';
+import type { NextBestWindow as NextBestWindowType } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useProcrastinationData } from '@/features/dashboard/hooks/useProcrastinationData';
+import { exportDashboardData } from '@/features/dashboard/services/exportData';
+import { useSettings } from '@/features/settings/hooks/useSettings';
 
 export const ProcrastinationDashboard = () => {
-  const [buckets, setBuckets] = useState<FingerprintBucket[]>([]);
-  const [timeline, setTimeline] = useState<TimelineSegment[]>([]);
-  const [weeklyStats, setWeeklyStats] = useState<DayStats[]>([]);
-  const [settings, setSettings] = useState<AppSettings>(defaultSettings);
-  const [isInFocusSession, setIsInFocusSession] = useState(false);
+  const { buckets, timeline, weeklyStats } = useProcrastinationData();
+  const { settings, setSettings } = useSettings();
   const { toast } = useToast();
 
-  // Initialize demo data
-  useEffect(() => {
-    const demoData = generateDemoData();
-    setBuckets(demoData.buckets);
-    setTimeline(generateTodayTimeline());
-    setWeeklyStats(generateWeeklyStats());
-  }, []);
-
-  const handleFocusStart = () => {
-    setIsInFocusSession(true);
+  const handleFocusStart = useCallback(() => {
     toast({
       title: 'Focus session started! 🎯',
       description: 'Stay focused and avoid distractions. You got this!',
     });
-  };
+  }, [toast]);
 
-  const handleFocusEnd = () => {
-    setIsInFocusSession(false);
+  const handleFocusEnd = useCallback(() => {
     toast({
       title: 'Great work! 🎉',
       description: 'Focus session completed. Take a well-deserved break.',
     });
-  };
+  }, [toast]);
 
-  const handleExportData = (format: 'json' | 'csv') => {
-    const data = {
-      buckets,
-      timeline,
-      weeklyStats,
-      settings,
-      exportDate: new Date().toISOString()
-    };
-
-    let content: string;
-    let fileName: string;
-    let mimeType: string;
-
+  const handleExportData = useCallback((format: 'json' | 'csv') => {
     if (format === 'json') {
-      content = JSON.stringify(data, null, 2);
-      fileName = `procrastination-data-${new Date().toISOString().split('T')[0]}.json`;
-      mimeType = 'application/json';
+      const data = { buckets, timeline, weeklyStats, settings, exportDate: new Date().toISOString() };
+      exportDashboardData(data, 'json', 'procrastination-data');
     } else {
-      // Convert to CSV (simplified)
-      const csvRows = [
-        ['Date', 'Hour', 'Day of Week', 'Procrastination Score', 'Tab Switches', 'Minutes Distracted'],
-        ...buckets.map(bucket => [
-          new Date().toISOString().split('T')[0], // Today's date for demo
-          bucket.hour.toString(),
-          bucket.dow.toString(),
-          bucket.score.toString(),
-          bucket.tabSwitchesPer5.toString(),
-          bucket.minutesDistracted.toString()
-        ])
-      ];
-      content = csvRows.map(row => row.join(',')).join('\n');
-      fileName = `procrastination-data-${new Date().toISOString().split('T')[0]}.csv`;
-      mimeType = 'text/csv';
+      const rows = buckets.map((bucket) => ({
+        date: new Date().toISOString().split('T')[0],
+        hour: bucket.hour,
+        dow: bucket.dow,
+        score: bucket.score,
+        tabSwitchesPer5: bucket.tabSwitchesPer5,
+        minutesDistracted: bucket.minutesDistracted,
+      }));
+      exportDashboardData(rows, 'csv', 'procrastination-data');
     }
-
-    // Download the file
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
     toast({
       title: `Data exported as ${format.toUpperCase()}`,
-      description: `Downloaded ${fileName} to your computer`,
+      description: `Downloaded procrastination-data to your computer`,
     });
-  };
+  }, [buckets, timeline, weeklyStats, settings, toast]);
 
   // Generate top triggers from demo data
   const topTriggers = [
@@ -156,11 +114,7 @@ export const ProcrastinationDashboard = () => {
         {/* Bottom section - Settings */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1">
-            <SettingsPanel
-              settings={settings}
-              onSettingsChange={setSettings}
-              onExportData={handleExportData}
-            />
+            <SettingsPanel onExportData={handleExportData} />
           </div>
           
           {/* Extension setup guide */}

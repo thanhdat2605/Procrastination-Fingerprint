@@ -1,7 +1,7 @@
-import { ProcrastinationDashboard } from "@/components/ProcrastinationDashboard";
+import DashboardPage from "@/features/dashboard/pages/DashboardPage";
 
 const Index = () => {
-  return <ProcrastinationDashboard />;
+  return <DashboardPage />;
 };
 
 export default Index;

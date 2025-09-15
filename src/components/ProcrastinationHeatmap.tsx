@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { FingerprintBucket } from '@/types';
+import { formatHour12 } from '@/shared/utils/format';
 
 interface Props {
   buckets: FingerprintBucket[];
@@ -24,13 +25,17 @@ const getScoreOpacity = (score: number) => {
 export const ProcrastinationHeatmap = ({ buckets }: Props) => {
   const [hoveredCell, setHoveredCell] = useState<{ hour: number; dow: number } | null>(null);
   
-  const getBucketData = (hour: number, dow: number) => {
-    return buckets.find(b => b.hour === hour && b.dow === dow);
-  };
+  const bucketIndex = useMemo(() => {
+    const map = new Map<string, FingerprintBucket>();
+    for (const b of buckets) {
+      map.set(`${b.hour}-${b.dow}`, b);
+    }
+    return map;
+  }, [buckets]);
 
-  const formatHour = (hour: number) => {
-    return hour === 0 ? '12 AM' : hour <= 12 ? `${hour} AM` : `${hour - 12} PM`;
-  };
+  const getBucketData = (hour: number, dow: number) => bucketIndex.get(`${hour}-${dow}`);
+
+  const formatHour = (hour: number) => formatHour12(hour);
 
   return (
     <TooltipProvider>

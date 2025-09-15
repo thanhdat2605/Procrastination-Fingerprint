@@ -7,23 +7,22 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Download, Upload, X, Plus, Settings as SettingsIcon } from 'lucide-react';
-import type { Settings as AppSettings } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useSettings } from '@/features/settings/hooks/useSettings';
 
 interface Props {
-  settings: AppSettings;
-  onSettingsChange: (settings: AppSettings) => void;
   onExportData: (format: 'json' | 'csv') => void;
 }
 
-export const SettingsPanel = ({ settings, onSettingsChange, onExportData }: Props) => {
+export const SettingsPanel = ({ onExportData }: Props) => {
   const [newDomain, setNewDomain] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
+  const { settings, setSettings } = useSettings();
 
   const handleAddDomain = () => {
     if (newDomain.trim() && !settings.distractionDomains.includes(newDomain.trim())) {
-      onSettingsChange({
+      setSettings({
         ...settings,
         distractionDomains: [...settings.distractionDomains, newDomain.trim()]
       });
@@ -36,7 +35,7 @@ export const SettingsPanel = ({ settings, onSettingsChange, onExportData }: Prop
   };
 
   const handleRemoveDomain = (domain: string) => {
-    onSettingsChange({
+    setSettings({
       ...settings,
       distractionDomains: settings.distractionDomains.filter(d => d !== domain)
     });
@@ -48,7 +47,7 @@ export const SettingsPanel = ({ settings, onSettingsChange, onExportData }: Prop
 
   const handleStudyGoalChange = (value: string) => {
     const minutes = parseInt(value) || 240;
-    onSettingsChange({
+    setSettings({
       ...settings,
       dailyStudyGoalMin: Math.max(60, Math.min(600, minutes)) // 1-10 hours
     });
@@ -56,7 +55,7 @@ export const SettingsPanel = ({ settings, onSettingsChange, onExportData }: Prop
 
   const handleIntervalChange = (value: string) => {
     const interval = parseInt(value) || 5;
-    onSettingsChange({
+    setSettings({
       ...settings,
       captureIntervalSec: Math.max(1, Math.min(60, interval)) // 1-60 seconds
     });

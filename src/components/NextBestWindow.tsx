@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Target, Calendar, ArrowRight } from 'lucide-react';
 import type { NextBestWindow as NextBestWindowType } from '@/types';
+import { formatHour12 } from '@/shared/utils/format';
 
 interface Props {
   recommendation: NextBestWindowType;
@@ -10,12 +11,7 @@ interface Props {
 }
 
 export const NextBestWindow = ({ recommendation, onStartFocus }: Props) => {
-  const formatHour = (hour: number) => {
-    if (hour === 0) return '12 AM';
-    if (hour < 12) return `${hour} AM`;
-    if (hour === 12) return '12 PM';
-    return `${hour - 12} PM`;
-  };
+  const formatHour = (hour: number) => formatHour12(hour);
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 80) return 'text-focus bg-focus-light';

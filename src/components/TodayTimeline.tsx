@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { TimelineSegment } from '@/types';
@@ -39,13 +40,16 @@ export const TodayTimeline = ({ segments }: Props) => {
   const currentMinute = now.getMinutes();
   
   // Group segments by hour for better visualization
-  const hourGroups: { [key: number]: TimelineSegment[] } = {};
-  segments.forEach(segment => {
-    if (!hourGroups[segment.startHour]) {
-      hourGroups[segment.startHour] = [];
-    }
-    hourGroups[segment.startHour].push(segment);
-  });
+  const hourGroups = useMemo(() => {
+    const groups: { [key: number]: TimelineSegment[] } = {};
+    segments.forEach(segment => {
+      if (!groups[segment.startHour]) {
+        groups[segment.startHour] = [];
+      }
+      groups[segment.startHour].push(segment);
+    });
+    return groups;
+  }, [segments]);
   
   const formatTime = (hour: number, minute: number) => {
     const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -53,23 +57,14 @@ export const TodayTimeline = ({ segments }: Props) => {
     return `${displayHour}:${minute.toString().padStart(2, '0')} ${ampm}`;
   };
 
-  const calculateStats = () => {
-    const stats = {
-      focus: 0,
-      distraction: 0,
-      idle: 0,
-      active: 0
-    };
-    
+  const stats = useMemo(() => {
+    const s = { focus: 0, distraction: 0, idle: 0, active: 0 } as Record<TimelineSegment['type'], number> & { active: number };
     segments.forEach(segment => {
       const duration = segment.endMinute - segment.startMinute;
-      stats[segment.type] += duration;
+      s[segment.type] += duration;
     });
-    
-    return stats;
-  };
-
-  const stats = calculateStats();
+    return s;
+  }, [segments]);
   const totalMinutes = Object.values(stats).reduce((sum, val) => sum + val, 0);
 
   return (
