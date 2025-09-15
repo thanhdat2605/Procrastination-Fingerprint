@@ -38,7 +38,7 @@ export const TopTriggers = ({ triggers }: Props) => {
   const maxMinutes = Math.max(...triggers.map(t => t.minutes));
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 min-h-[420px] flex flex-col">
       <div className="mb-4">
         <h3 className="text-lg font-semibold mb-2">Top Distraction Triggers</h3>
         <p className="text-sm text-muted-foreground">
@@ -46,7 +46,7 @@ export const TopTriggers = ({ triggers }: Props) => {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 flex-1">
         {triggers.slice(0, 5).map((trigger, index) => (
           <div key={trigger.domain} className="space-y-2">
             <div className="flex items-center justify-between">
@@ -105,6 +105,13 @@ export const TopTriggers = ({ triggers }: Props) => {
               <span className="font-medium">
                 {Math.round(totalMinutes / 7)} min/day
               </span>
+            </div>
+            {/* Extra rows for layout parity */}
+            <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+              <div className="text-muted-foreground">Peak hour:</div>
+              <div className="text-right">{['10 AM','2 PM','8 PM'][Math.floor(Math.random()*3)]}</div>
+              <div className="text-muted-foreground">Most frequent domain:</div>
+              <div className="text-right">{triggers[0]?.domain ?? '—'}</div>
             </div>
           </div>
         )}

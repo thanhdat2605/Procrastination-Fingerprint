@@ -68,7 +68,7 @@ export const TodayTimeline = ({ segments }: Props) => {
   const totalMinutes = Object.values(stats).reduce((sum, val) => sum + val, 0);
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 min-h-[420px] flex flex-col">
       <div className="mb-4">
         <h3 className="text-lg font-semibold mb-2">Today's Activity</h3>
         <p className="text-sm text-muted-foreground">
@@ -105,7 +105,7 @@ export const TodayTimeline = ({ segments }: Props) => {
       </div>
 
       {/* Timeline visualization */}
-      <div className="space-y-3">
+      <div className="space-y-3 flex-1">
         {Object.entries(hourGroups)
           .sort(([a], [b]) => Number(a) - Number(b))
           .map(([hourStr, hourSegments]) => {

@@ -12,7 +12,7 @@ export const WeeklyStats = ({ stats }: Props) => {
   // Handle empty state safely
   if (!stats || stats.length === 0) {
     return (
-      <Card className="p-6">
+      <Card className="p-6 min-h-[420px] flex flex-col">
         <div className="mb-4">
           <h3 className="text-lg font-semibold mb-2">Weekly Overview</h3>
           <p className="text-sm text-muted-foreground">
@@ -56,7 +56,7 @@ export const WeeklyStats = ({ stats }: Props) => {
     }
   };
   return (
-    <Card className="p-6">
+    <Card className="p-6 min-h-[420px] flex flex-col">
       <div className="mb-4">
         <h3 className="text-lg font-semibold mb-2">Weekly Overview</h3>
         <p className="text-sm text-muted-foreground">
@@ -85,7 +85,7 @@ export const WeeklyStats = ({ stats }: Props) => {
       </div>
 
       {/* Daily breakdown */}
-      <div className="space-y-3">
+      <div className="space-y-3 flex-1">
         <div className="text-sm font-medium">Daily Breakdown</div>
         {stats.map((day, index) => {
           const date = new Date(day.date);

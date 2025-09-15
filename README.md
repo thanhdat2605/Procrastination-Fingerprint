@@ -114,7 +114,3 @@ curl -X POST http://localhost:3001/api/events \
 - `npm run dev:all` – chạy cả FE & BE song song.
 - `npm run build` – build FE.
 - `npm run preview` – preview FE build.
-
-## 9) License
-
-MIT (nếu khác, cập nhật tại đây).
