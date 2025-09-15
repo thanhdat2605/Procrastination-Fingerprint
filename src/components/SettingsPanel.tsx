@@ -9,6 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { Download, Upload, X, Plus, Settings as SettingsIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/features/settings/hooks/useSettings';
+import { useSettingsApi } from '@/features/dashboard/api/useDashboardQueries';
+import { useDataSource } from '@/features/data-source/context/DataSourceContext';
 
 interface Props {
   onExportData: (format: 'json' | 'csv') => void;
@@ -19,6 +21,8 @@ export const SettingsPanel = ({ onExportData }: Props) => {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const { settings, setSettings } = useSettings();
+  const { update } = useSettingsApi();
+  const { mode, toggle } = useDataSource();
 
   const handleAddDomain = () => {
     if (newDomain.trim() && !settings.distractionDomains.includes(newDomain.trim())) {
@@ -27,6 +31,7 @@ export const SettingsPanel = ({ onExportData }: Props) => {
         distractionDomains: [...settings.distractionDomains, newDomain.trim()]
       });
       setNewDomain('');
+      update.mutate({ ...settings, distractionDomains: [...settings.distractionDomains, newDomain.trim()] });
       toast({
         title: 'Domain added',
         description: `${newDomain.trim()} added to distraction list`,
@@ -39,6 +44,7 @@ export const SettingsPanel = ({ onExportData }: Props) => {
       ...settings,
       distractionDomains: settings.distractionDomains.filter(d => d !== domain)
     });
+    update.mutate({ ...settings, distractionDomains: settings.distractionDomains.filter(d => d !== domain) });
     toast({
       title: 'Domain removed',
       description: `${domain} removed from distraction list`,
@@ -51,6 +57,7 @@ export const SettingsPanel = ({ onExportData }: Props) => {
       ...settings,
       dailyStudyGoalMin: Math.max(60, Math.min(600, minutes)) // 1-10 hours
     });
+    update.mutate({ ...settings, dailyStudyGoalMin: Math.max(60, Math.min(600, minutes)) });
   };
 
   const handleIntervalChange = (value: string) => {
@@ -59,6 +66,7 @@ export const SettingsPanel = ({ onExportData }: Props) => {
       ...settings,
       captureIntervalSec: Math.max(1, Math.min(60, interval)) // 1-60 seconds
     });
+    update.mutate({ ...settings, captureIntervalSec: Math.max(1, Math.min(60, interval)) });
   };
 
   return (
@@ -69,6 +77,24 @@ export const SettingsPanel = ({ onExportData }: Props) => {
       </div>
 
       <div className="space-y-6">
+        {/* Data Source */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label>Data Source</Label>
+            <div className="text-xs text-muted-foreground">
+              Toggle between API and Demo data
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <span>Demo</span>
+            <Switch
+              checked={mode === 'api'}
+              onCheckedChange={() => toggle()}
+            />
+            <span>API</span>
+          </div>
+        </div>
+
         {/* Study Goal */}
         <div className="space-y-2">
           <Label htmlFor="studyGoal">Daily Study Goal (minutes)</Label>

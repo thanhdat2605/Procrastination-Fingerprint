@@ -5,6 +5,7 @@ import { Play, Pause, Square, Coffee, Brain } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFocusTimer } from '@/features/dashboard/hooks/useFocusTimer';
 import { formatTimeHM } from '@/shared/utils/format';
+import { useFocusApi } from '@/features/dashboard/api/useDashboardQueries';
 
 interface Props {
   onSessionStart?: () => void;
@@ -13,11 +14,14 @@ interface Props {
 
 export const FocusTimer = ({ onSessionStart, onSessionEnd }: Props) => {
   const { toast } = useToast();
+  const { start: startFocus, end: endFocus } = useFocusApi();
   const { state, timeLeft, isBreak, sessionCount, start, pause, stop, progress } = useFocusTimer(
     () => {
+      startFocus.mutate();
       onSessionStart?.();
     },
     () => {
+      endFocus.mutate();
       toast({
         title: 'Focus session complete! 🎉',
         description: 'Time for a break.',

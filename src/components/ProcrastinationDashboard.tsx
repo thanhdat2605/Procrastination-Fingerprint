@@ -6,15 +6,14 @@ import { TopTriggers } from './TopTriggers';
 import { NextBestWindow } from './NextBestWindow';
 import { SettingsPanel } from './SettingsPanel';
 import { WeeklyStats } from './WeeklyStats';
-import type { NextBestWindow as NextBestWindowType } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { useProcrastinationData } from '@/features/dashboard/hooks/useProcrastinationData';
+import { useDashboardData } from '@/features/dashboard/api/useDashboardQueries';
 import { exportDashboardData } from '@/features/dashboard/services/exportData';
 import { useSettings } from '@/features/settings/hooks/useSettings';
 
 export const ProcrastinationDashboard = () => {
-  const { buckets, timeline, weeklyStats } = useProcrastinationData();
-  const { settings, setSettings } = useSettings();
+  const { buckets, timeline, weekly, triggers, nextWindow } = useDashboardData();
+  const { settings } = useSettings();
   const { toast } = useToast();
 
   const handleFocusStart = useCallback(() => {
@@ -33,10 +32,16 @@ export const ProcrastinationDashboard = () => {
 
   const handleExportData = useCallback((format: 'json' | 'csv') => {
     if (format === 'json') {
-      const data = { buckets, timeline, weeklyStats, settings, exportDate: new Date().toISOString() };
+      const data = {
+        buckets: buckets.data || [],
+        timeline: timeline.data || [],
+        weeklyStats: weekly.data || [],
+        settings,
+        exportDate: new Date().toISOString()
+      };
       exportDashboardData(data, 'json', 'procrastination-data');
     } else {
-      const rows = buckets.map((bucket) => ({
+      const rows = (buckets.data || []).map((bucket) => ({
         date: new Date().toISOString().split('T')[0],
         hour: bucket.hour,
         dow: bucket.dow,
@@ -50,24 +55,9 @@ export const ProcrastinationDashboard = () => {
       title: `Data exported as ${format.toUpperCase()}`,
       description: `Downloaded procrastination-data to your computer`,
     });
-  }, [buckets, timeline, weeklyStats, settings, toast]);
+  }, [buckets.data, timeline.data, weekly.data, settings, toast]);
 
-  // Generate top triggers from demo data
-  const topTriggers = [
-    { domain: 'youtube.com', minutes: 125, percentage: 35, trend: 'up' as const },
-    { domain: 'reddit.com', minutes: 89, percentage: 25, trend: 'down' as const },
-    { domain: 'instagram.com', minutes: 67, percentage: 19, trend: 'up' as const },
-    { domain: 'twitter.com', minutes: 45, percentage: 13, trend: 'stable' as const },
-    { domain: 'tiktok.com', minutes: 29, percentage: 8, trend: 'down' as const }
-  ];
-
-  // Generate next best window recommendation
-  const nextBestWindow: NextBestWindowType = {
-    hour: 16, // 4 PM
-    score: 25,
-    confidence: 85,
-    reason: "Historical data shows low distraction rates at this time"
-  };
+  const topTriggers = triggers.data || [];
 
   return (
     <div className="min-h-screen bg-gradient-surface p-4">
@@ -86,12 +76,12 @@ export const ProcrastinationDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left column - Heatmap */}
           <div className="lg:col-span-2 space-y-6">
-            <ProcrastinationHeatmap buckets={buckets} />
+            <ProcrastinationHeatmap buckets={buckets.data || []} />
             
             {/* Today's timeline and weekly stats */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <TodayTimeline segments={timeline} />
-              <WeeklyStats stats={weeklyStats} />
+              <TodayTimeline segments={timeline.data || []} />
+              <WeeklyStats stats={weekly.data || []} />
             </div>
           </div>
 
@@ -103,7 +93,7 @@ export const ProcrastinationDashboard = () => {
             />
             
             <NextBestWindow 
-              recommendation={nextBestWindow}
+              recommendation={nextWindow.data || { hour: 16, score: 25, confidence: 85, reason: '—' }}
               onStartFocus={handleFocusStart}
             />
             
