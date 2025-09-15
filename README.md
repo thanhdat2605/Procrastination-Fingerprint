@@ -1,104 +1,136 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/YHSq4TPZ)
-# Focus Flow Finder – Preliminary Assignment Submission
-⚠️ Please complete all sections marked with the ✍️ icon — these are required for your submission.
+# Procrastination Fingerprint
 
-👀 Please Check ASSIGNMENT.md file in this repository for assignment requirements.
+A dashboard to track your **procrastination fingerprint**: 24×7 heatmap, today timeline, weekly stats, top distraction triggers, focus timer, and data export. Supports 2 data sources: an in-memory backend API or demo data.
 
-## 🚀 Project Setup & Usage
-**How to install and run your project:**  
-✍️  
-- Node.js >= 18, npm >= 9
-- Clone repo và cài đặt phụ thuộc
+---
+
+## 1) Install & Run
+
+**Requirements:** Node.js ≥ 18, npm ≥ 9.
 
 ```bash
 git clone <YOUR_GIT_URL>
 cd Procrastination_Fingerprint
 npm install
+```
+
+Run frontend + backend together (**recommended**):
+```bash
+npm run dev:all
+```
+
+Or run separately:
+```bash
+# terminal 1: backend (port 3001)
+npm run dev:server
+
+# terminal 2: frontend (port 8080)
 npm run dev
 ```
 
-Tùy chọn:
-- Build production: `npm run build`
-- Preview sau build: `npm run preview`
+Build/preview:
+```bash
+npm run build
+npm run preview
+```
 
-## 🔗 Deployed Web URL or APK file
-✍️ Chưa triển khai. Có thể deploy lên Vercel/Netlify bất kỳ lúc nào.
+---
 
-## 🎥 Demo Video
-**Demo video link (≤ 2 minutes):**  
-📌 **Video Upload Guideline:** when uploading your demo video to YouTube, please set the visibility to **Unlisted**.  
-- “Unlisted” videos can only be viewed by users who have the link.  
-- The video will not appear in search results or on your channel.  
-- Share the link in your README so mentors can access it.
+## 2) Project Structure
 
-✍️ (Sẽ bổ sung link video demo khi có)
+```
+src/                      # Frontend (Vite + React + TS)
+  app/                    # AppProviders, AppRoutes
+  components/             # UI components & feature blocks
+  features/
+    dashboard/
+      api/                # React Query hooks calling the API
+      hooks/              # Hooks logic (focus timer, data)
+      pages/              # DashboardPage
+      services/           # export data service
+    data-source/          # Toggle Demo/API (context)
+    settings/             # Settings context/hook
+  lib/                    # demo-data generators, utils
+  shared/                 # api client, utils/format
 
-## 💻 Project Introduction
+server/                   # Backend (Express + TS, in-memory)
+  src/
+    routes/               # /api/* endpoints
+    services/             # computation/aggregation logic
+    store.ts              # in-memory store
+```
 
-### a. Overview
+---
 
-✍️ Focus Flow Finder là dashboard giúp sinh viên theo dõi “dấu vân tay trì hoãn” (Procrastination Fingerprint) theo giờ và ngày, phát hiện tác nhân gây xao nhãng, đề xuất khung giờ tập trung tốt nhất và cung cấp công cụ hẹn giờ tập trung.
+## 3) Data Sources: Demo vs API
 
-### b. Key Features & Function Manual
+- Default mode is **API** (calls the in-memory backend).
+- You can switch to **Demo** mode (use sample data) at: **Settings & Data → Data Source (Demo/API)**.
+- In Demo mode, write APIs (focus start/end, update settings) are **safe no-ops**.
 
-✍️ Tính năng chính và cách dùng:
-- Procrastination Fingerprint (Heatmap 24x7): hiển thị ma trận 24 hàng (giờ) x 7 cột (thứ) với mức độ trì hoãn; di chuột để xem tooltip chi tiết theo ô.
-- Focus Timer: bắt đầu/kết thúc phiên tập trung; nhận thông báo thành công.
-- Today Timeline: dòng thời gian hoạt động hôm nay (focus/active/distraction/idle) theo từng phân đoạn.
-- Weekly Stats: thống kê tổng thời gian online, focus, distraction, idle và điểm trung bình theo ngày.
-- Top Triggers: top website gây xao nhãng theo phút và xu hướng.
-- Next Best Window: đề xuất khung giờ tiếp theo phù hợp để tập trung kèm độ tin cậy và lý do.
-- Settings Panel: cấu hình domain gây xao nhãng, chu kỳ thu thập, mục tiêu học mỗi ngày; hỗ trợ xuất dữ liệu JSON/CSV.
+---
 
-### c. Unique Features (What’s special about this app?) 
+## 4) Backend API (in-memory)
 
-✍️
-- Trực quan “dấu vân tay trì hoãn” dạng heatmap 24x7, đảo trục theo chuẩn phân tích (giờ=rows, ngày=columns).
-- Dự kiến tích hợp Chrome Extension để thu thập dữ liệu cục bộ, ưu tiên quyền riêng tư (privacy-first).
-- Gợi ý khung giờ tập trung dựa trên lịch sử (MVP mô phỏng, dễ mở rộng ML).
-- UI hiện đại với shadcn/ui + Tailwind và tooltip chi tiết ở từng ô.
+- **Base URL:** `/api` (proxied by Vite to `http://localhost:3001`).
 
-### d. Technology Stack and Implementation Methods
+- **Key endpoints:**
+  - `GET /api/stats/buckets` — 24×7 heatmap.
+  - `GET /api/stats/timeline/today` — today’s timeline.
+  - `GET /api/stats/weekly` — 7‑day aggregate stats.
+  - `GET /api/stats/triggers/top` — top distraction triggers (domains).
+  - `GET /api/stats/recommendations/next-window` — recommend the next best focus window.
+  - `GET /api/settings` — get settings.
+  - `PUT /api/settings` — update settings.
+  - `POST /api/events` — push activity events (updates statistics).
+  - `POST /api/focus/start` — mark focus session start.
+  - `POST /api/focus/end` — mark focus session end.
 
-✍️ Stack chính:
-- Vite + React 18 + TypeScript
-- Tailwind CSS + shadcn/ui (Radix UI)
-- React Router, TanStack Query
-- Recharts cho biểu đồ
+**Quick data injection example (optional):**
+```bash
+curl -X POST http://localhost:3001/api/events \
+  -H "Content-Type: application/json" \
+  -d '[{"id":"e1","ts":'$(date +%s%3N)',"domain":"youtube.com","isIdle":false,"kind":"DISTRACTION"}]'
+```
 
-Phương pháp triển khai nổi bật:
-- Component hóa: `ProcrastinationDashboard` điều phối dữ liệu và bố cục; các khối tính năng là component độc lập.
-- Heatmap: `ProcrastinationHeatmap` render ma trận 24x7 với màu/độ mờ dựa trên score, tooltip hiển thị chi tiết bucket.
-- Dữ liệu demo: tạo từ `src/lib/demo-data.ts`, định nghĩa kiểu dữ liệu tại `src/types/index.ts`.
-- Xuất dữ liệu: JSON/CSV từ UI (tải xuống trực tiếp trình duyệt).
+> On Windows PowerShell, replace the `$(date +%s%3N)` expression with an equivalent timestamp generator.
 
-### e. Service Architecture & Database structure (when used)
+---
 
-✍️ Kiến trúc hiện tại:
-- Ứng dụng SPA front-end thuần, chưa có backend; dữ liệu mô phỏng sinh ngẫu nhiên để minh họa.
-- Dự kiến: Chrome Extension thu thập domain/tab switch/idle theo chu kỳ và đồng bộ cục bộ; có thể mở rộng đồng bộ đám mây tuỳ chọn.
-- Không dùng CSDL trong MVP; cấu trúc dữ liệu chính: `FingerprintBucket`, `TimelineSegment`, `DayStats`, `Settings`.
+## 5) Features
 
-## 🧠 Reflection
+- **Procrastination Heatmap:** 24×7 matrix with detailed tooltips and legend.
+- **Today Timeline:** segments for focus / active / distraction / idle across the current day.
+- **Weekly Stats:** total durations, ratios, average score, streak, worst day.
+- **Top Triggers:** top distraction domains with progress and trend.
+- **Next Best Window:** suggest the next focus window based on your data.
+- **Focus Timer:** start / pause / stop; syncs to backend in API mode.
+- **Settings & Data:**
+  - Data Source switch between Demo and API.
+  - Configure distraction domains, capture interval, daily learning goals.
+  - Export current data to JSON/CSV.
 
-### a. If you had more time, what would you expand?
+---
 
-✍️
-- Xây Chrome Extension thực: thu thập sự kiện, đồng bộ an toàn, dashboard realtime.
-- Mô hình gợi ý khung giờ tập trung cá nhân hoá (học từ lịch sử, theo mùa vụ thi/cuối kỳ).
-- Lưu trữ bền vững (IndexedDB/SQLite/Cloud) và multi-device sync.
-- Bộ lọc nâng cao, phân tích theo môn học/khoá học, goal tracking và thông báo nhẹ nhàng.
-- Ứng dụng di động hoặc PWA với offline-first.
+## 6) Tech Stack
 
-### b. If you integrate AI APIs more for your app, what would you do?
+- **Frontend:** Vite, React 18, TypeScript, Tailwind CSS, shadcn/ui (Radix UI), React Router, TanStack Query.
+- **Backend:** Express + TypeScript (in-memory store).
 
-✍️
-- Tóm tắt thói quen xao nhãng theo tuần/tháng, gợi ý tinh chỉnh lịch học cá nhân.
-- Chat assistant trả lời về các “điểm mù” năng suất và đề xuất chiến lược Pomodoro phù hợp.
-- Phát hiện bất thường (spikes) và root-cause analysis theo domain/khung giờ.
-- Dự báo rủi ro xao nhãng tiếp theo và nhắc nhở chủ động nhưng không xâm lấn.
+---
 
-## ✅ Checklist
-- [x] Code runs without errors  
-- [x] Core features implemented (heatmap, timer, timeline, stats, export)  
-- [x] All ✍️ sections are filled  
+## 7) Development Notes
+
+- Vite proxy is preconfigured in `vite.config.ts` (FE port 8080 → BE port 3001).
+- Lint/format: ESLint + Prettier; TypeScript **strict** enabled by default.
+- Backend data is in-memory only; services are structured to be easily swapped for a DB (e.g., SQLite/Prisma) later.
+
+---
+
+## 8) NPM Scripts
+
+- `npm run dev` — run frontend.
+- `npm run dev:server` — run backend.
+- `npm run dev:all` — run both frontend & backend in parallel.
+- `npm run build` — build frontend.
+- `npm run preview` — preview built frontend.
